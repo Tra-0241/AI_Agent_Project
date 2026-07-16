@@ -1,0 +1,26 @@
+﻿Cot,Xuat_hien_trong_file,Y_nghia
+Task ID,"it_master, it_worker_level",Mã định danh duy nhất của 1 task (giữ nguyên từ WORKBank).
+O*NET-SOC Code,it_master,"Mã nghề chuẩn O*NET-SOC, dùng để xác định nghề IT."
+Occupation (O*NET-SOC Title),"it_master, it_worker_level",Tên nghề theo O*NET-SOC Title.
+Task,"it_master, it_worker_level",Nội dung mô tả công việc cụ thể (task statement).
+Occupation Mean Annual Wage,it_master,Lương trung bình năm (USD) của nghề - dùng tính ROI.
+Occupation Employment,it_master,Số lượng nhân sự đang làm nghề này (toàn quốc) - dùng tính ROI theo quy mô.
+Wage_Missing / Employment_Missing,it_master,"Cờ True nếu Wage/Employment gốc bị thiếu (NaN) - TV2 cần xử lý riêng, KHÔNG tự impute."
+Frequency,it_master,Tần suất xuất hiện của task trong công việc (thang điểm gốc WORKBank).
+Importance,it_master,Mức độ quan trọng của task (thang điểm gốc WORKBank).
+Relevance,it_master,Mức độ liên quan/phổ biến của task với nghề (0-100).
+Expert_Automation Capacity Rating,it_master,"Trung bình điểm chuyên gia chấm AI có thể làm được task này (1-5, cao = AI làm tốt)."
+Expert_Human Agency Scale Rating,it_master,Trung bình điểm chuyên gia chấm mức độ cần con người kiểm soát/tham gia.
+Expert_N_Raters,it_master,Số lượng chuyên gia đã chấm task này.
+Worker_Automation Desire Rating,"it_master, it_worker_level",Trung bình/giá trị mức độ NGƯỜI LAO ĐỘNG muốn tự động hóa task này (1-5).
+Worker_Human Agency Scale Rating,"it_master, it_worker_level",Mức độ worker cho rằng cần con người tham gia/kiểm soát task.
+Worker_Time,"it_master, it_worker_level",Thời gian (chi phí thời gian) worker bỏ ra cho task - input tính giờ tiết kiệm được.
+Worker_Job Security Rating,"it_master, it_worker_level",Mức độ lo ngại mất việc nếu task bị tự động hóa - input tính Friction Score.
+Worker_Enjoyment Rating,"it_master, it_worker_level",Mức độ yêu thích công việc/task - input tính Friction Score.
+Worker_N_Respondents,it_master,Số lượng worker đã tự đánh giá task này.
+Share_AutoDesire_*,"it_master, it_worker_level (dạng bool)","Tỷ lệ (hoặc cờ True/False ở cấp cá nhân) lý do MUỐN tự động hóa: Free Time, Repetitive, Human Error, Stress, Difficulty, Scale."
+Share_HumanAgency_*,"it_master, it_worker_level (dạng bool)","Tỷ lệ (hoặc cờ True/False ở cấp cá nhân) lý do MUỐN GIỮ con người: Physical, Control, Domain Knowledge, Empathy, Quality Oversight, Dynamic, Ethical."
+Has_Expert_Rating / Has_Worker_Rating,it_master,Cờ True nếu task có ít nhất 1 lượt chấm tương ứng - dùng để lọc task đủ dữ liệu trước khi tính ROI/Friction.
+"Gender, Race, Age, Education, Experience, Income",it_worker_level,Thông tin nhân khẩu học của worker (từ domain_worker_metadata) - dùng phân tích rủi ro theo nhóm.
+AI Suffering/Job Importance/Tedious/Daily Interest Attitude,it_worker_level,Thái độ chủ quan của worker với AI - dùng giải thích 'vì sao friction cao'.
+LLM Familiarity / LLM Use in Work / LLM Usage by Type - *,it_worker_level,Mức độ và cách thức worker đang dùng LLM trong công việc.
