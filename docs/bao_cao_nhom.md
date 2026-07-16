@@ -25,15 +25,6 @@ ngành IT: xác định nhóm task "nên tự động hóa ngay" (ROI cao, Frict
 "chưa nên ưu tiên" (ROI thấp), giúp doanh nghiệp vừa tối ưu chi phí – lợi ích, vừa
 giảm rủi ro phản ứng tiêu cực từ nhân sự khi áp dụng AI Agent.
 
-Đề tài được chia thành 4 phần việc song song:
-
-| Thành viên | Vai trò | Đầu ra chính |
-|---|---|---|
-| TV1 | Data Engineer | Merge, làm sạch, lọc khối IT → `it_master.csv`, `it_worker_level.csv` |
-| TV2 | Phân tích kinh tế | Tính **ROI Index** theo task/nghề |
-| TV3 | Phân tích lực cản nhân sự | Tính **Friction Score**, phân tích theo nhân khẩu học |
-| TV4 | Tổng hợp & sản phẩm | Dashboard Streamlit, bộ quy tắc khuyến nghị (`agent_rules.py`), báo cáo |
-
 ## 2. Nguồn dữ liệu và phương pháp xử lý
 
 ### 2.1. Nguồn dữ liệu
