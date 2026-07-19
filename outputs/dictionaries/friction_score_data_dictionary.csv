@@ -1,0 +1,13 @@
+﻿Cot,Xuat_hien_trong_file,Y_nghia
+Task ID / Occupation / Task,friction_score,"Định danh task, giữ nguyên từ it_master.csv."
+Capacity_Desire_Gap_Raw,friction_score,Expert_Automation Capacity Rating trừ Worker_Automation Desire Rating (chưa chuẩn hóa); dương = AI làm được nhiều hơn mức worker muốn nhường.
+HumanAgency_Resistance_Raw,friction_score,Trung bình tỷ lệ worker nêu lý do Control/Empathy/Ethical để giữ vai trò con người (0-1).
+Friction Score,friction_score,"Điểm lực cản tổng hợp, thang 0-100, = 40% Capacity-Desire Gap + 20% Job Security Concern + 20% Enjoyment Attachment + 20% Human Agency Resistance (mỗi thành phần đã min-max normalize)."
+Canh_Bao,friction_score,"'Đỏ' nếu Friction Score nằm trong top 25% cao nhất của các task IT đủ dữ liệu, ngược lại 'Xanh'."
+Lý do chính,friction_score,Thành phần đóng góp nhiều điểm nhất (sau khi nhân trọng số) vào Friction Score của task đó.
+Expert_N_Raters / Worker_N_Respondents,friction_score,Số lượng chuyên gia / worker đã chấm task - dùng đánh giá độ tin cậy của điểm.
+Nhom_Phan_Tich,friction_score_by_group,Tên biến nhân khẩu học/thái độ dùng để nhóm (vd 'AI Suffering Attitude').
+Gia_Tri,friction_score_by_group,"Giá trị cụ thể của biến nhóm (vd 'Agree', 'Disagree')."
+Avg_Friction_Score,friction_score_by_group,Friction Score trung bình (tính trên các worker-response thuộc nhóm này).
+Pct_Canh_Bao_Do,friction_score_by_group,% worker-response thuộc nhóm này rơi vào task có cảnh báo Đỏ.
+N_Worker_Responses,friction_score_by_group,Số lượng worker-response thuộc nhóm này (mẫu số của trung bình).

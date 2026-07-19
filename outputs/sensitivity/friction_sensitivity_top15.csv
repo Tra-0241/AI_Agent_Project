@@ -1,0 +1,46 @@
+﻿Hang,Bo_Trong_So,Task ID,Occupation (O*NET-SOC Title),Friction Score
+1,ban_dau,14647,Software Quality Assurance Analysts and Testers,68.52
+2,ban_dau,1313,Database Administrators,66.53
+3,ban_dau,1285,Computer User Support Specialists,65.11
+4,ban_dau,18991,Computer Network Support Specialists,63.66
+5,ban_dau,1283,Computer User Support Specialists,62.0
+6,ban_dau,14644,Software Quality Assurance Analysts and Testers,59.36
+7,ban_dau,1276,Computer Programmers,58.3
+8,ban_dau,5317,Information Security Analysts,56.58
+9,ban_dau,14641,Software Quality Assurance Analysts and Testers,55.94
+10,ban_dau,1299,Database Administrators,54.69
+11,ban_dau,14681,Computer Systems Engineers/Architects,54.32
+12,ban_dau,1270,Computer Programmers,54.13
+13,ban_dau,14671,Computer Systems Engineers/Architects,54.0
+14,ban_dau,1275,Computer Programmers,53.68
+15,ban_dau,1282,Computer User Support Specialists,53.34
+1,bang_nhau,14647,Software Quality Assurance Analysts and Testers,66.54
+2,bang_nhau,14671,Computer Systems Engineers/Architects,63.97
+3,bang_nhau,5317,Information Security Analysts,63.0
+4,bang_nhau,14681,Computer Systems Engineers/Architects,62.01
+5,bang_nhau,1285,Computer User Support Specialists,61.54
+6,bang_nhau,18991,Computer Network Support Specialists,58.99
+7,bang_nhau,14644,Software Quality Assurance Analysts and Testers,58.76
+8,bang_nhau,1313,Database Administrators,58.17
+9,bang_nhau,14641,Software Quality Assurance Analysts and Testers,58.16
+10,bang_nhau,14650,Software Quality Assurance Analysts and Testers,57.53
+11,bang_nhau,1283,Computer User Support Specialists,56.49
+12,bang_nhau,14670,Computer Systems Engineers/Architects,55.7
+13,bang_nhau,1270,Computer Programmers,55.4
+14,bang_nhau,1276,Computer Programmers,55.23
+15,bang_nhau,1323,Network and Computer Systems Administrators,54.45
+1,pca,14681,Computer Systems Engineers/Architects,84.32
+2,pca,5317,Information Security Analysts,82.71
+3,pca,14671,Computer Systems Engineers/Architects,78.16
+4,pca,5316,Information Security Analysts,76.64
+5,pca,5314,Information Security Analysts,75.89
+6,pca,3482,Computer Systems Analysts,74.63
+7,pca,14623,Computer and Information Research Scientists,71.97
+8,pca,14650,Software Quality Assurance Analysts and Testers,69.02
+9,pca,1322,Network and Computer Systems Administrators,68.95
+10,pca,3484,Computer Systems Analysts,68.11
+11,pca,14687,Computer Systems Engineers/Architects,67.79
+12,pca,1318,Network and Computer Systems Administrators,67.47
+13,pca,14641,Software Quality Assurance Analysts and Testers,67.27
+14,pca,14670,Computer Systems Engineers/Architects,66.74
+15,pca,1323,Network and Computer Systems Administrators,65.42

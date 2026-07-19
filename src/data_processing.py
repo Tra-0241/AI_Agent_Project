@@ -29,6 +29,8 @@ logger = logging.getLogger(__name__)
 RAW_DIR = Path(__file__).resolve().parent.parent / "data" / "raw"
 PROCESSED_DIR = Path(__file__).resolve().parent.parent / "data" / "processed"
 
+OUTPUT_DIR = Path(__file__).resolve().parent.parent / "outputs"
+DICTIONARY_DIR = OUTPUT_DIR / "dictionaries"
 
 # ---------------------------------------------------------------------------
 # 0. DANH SÁCH NGHỀ THUỘC KHỐI IT
@@ -491,19 +493,37 @@ def build_master_table() -> dict[str, pd.DataFrame]:
 
 def main() -> None:
     PROCESSED_DIR.mkdir(parents=True, exist_ok=True)
+    DICTIONARY_DIR.mkdir(parents=True, exist_ok=True)
+
     tables = build_master_table()
 
     master_path = PROCESSED_DIR / "it_master.csv"
     worker_path = PROCESSED_DIR / "it_worker_level.csv"
-    dict_path = PROCESSED_DIR / "it_master_data_dictionary.csv"
 
-    tables["it_master"].to_csv(master_path, index=False, encoding="utf-8-sig")
-    tables["it_worker_level"].to_csv(worker_path, index=False, encoding="utf-8-sig")
-    build_data_dictionary().to_csv(dict_path, index=False, encoding="utf-8-sig")
+    # Data Dictionary chuyển sang outputs/dictionaries
+    dict_path = DICTIONARY_DIR / "it_master_data_dictionary.csv"
 
-    print(f"[OK] Da xuat {len(tables['it_master']):,} dong ra {master_path}")
-    print(f"[OK] Da xuat {len(tables['it_worker_level']):,} dong ra {worker_path}")
-    print(f"[OK] Da xuat data dictionary ra {dict_path}") 
+    tables["it_master"].to_csv(
+        master_path,
+        index=False,
+        encoding="utf-8-sig",
+    )
+
+    tables["it_worker_level"].to_csv(
+        worker_path,
+        index=False,
+        encoding="utf-8-sig",
+    )
+
+    build_data_dictionary().to_csv(
+        dict_path,
+        index=False,
+        encoding="utf-8-sig",
+    )
+
+    print(f"[OK] IT Master -> {master_path}")
+    print(f"[OK] Worker Level -> {worker_path}")
+    print(f"[OK] Data Dictionary -> {dict_path}")
 
 
 if __name__ == "__main__":
