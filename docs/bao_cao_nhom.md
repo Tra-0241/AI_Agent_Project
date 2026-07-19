@@ -110,6 +110,118 @@ tái sử dụng, có docstring cho từng hàm), sinh ra 3 file trong `data/pro
 
 ## 3. Phương pháp tính ROI Index
 
+### 3.1. Mục tiêu và phạm vi
+
+ROI Index được xây dựng để **xếp hạng mức độ ưu tiên kinh tế tương đối** của các
+task IT khi xem xét triển khai AI Agent. Chỉ số không phải ROI kế toán theo công
+thức `(lợi ích - chi phí) / chi phí`, vì WORKBank không cung cấp chi phí phát
+triển, hạ tầng, API, bảo trì, đào tạo và giám sát AI. Do đó, kết quả nên được hiểu
+là thước đo **Economic Opportunity** phục vụ bước sàng lọc trước khi doanh nghiệp
+thực hiện pilot và đo ROI tài chính thực tế.
+
+### 3.2. Biến đầu vào và xử lý dữ liệu thiếu
+
+Chỉ số sử dụng sáu biến trong `it_master.csv`: `Occupation Mean Annual Wage`,
+`Occupation Employment`, `Frequency`, `Importance`, `Worker_Time` và
+`Expert_Automation Capacity Rating`. Một task chỉ được xếp hạng khi cả sáu biến
+có giá trị hợp lệ; các task còn lại được giữ trong bảng kết quả nhưng gắn vùng
+`Chưa đủ dữ liệu`, thay vì tự động điền 0 hoặc loại khỏi đầu ra.
+
+Trong 186 task IT, có **102 task đủ dữ liệu** để tính ROI Index và 84 task thiếu
+ít nhất một thành phần. Theo codebook WORKBank, `Worker_Time` có thang 1–5, với
+1 tương ứng 10% và 5 tương ứng 100% thời gian làm việc. Nghiên cứu nội suy tuyến
+tính giữa hai neo để tạo `Time Share Proxy`; biến này không được diễn giải thành
+số giờ tiết kiệm thực tế.
+
+### 3.3. Công thức
+
+Quy mô giá trị lao động của nghề được tính bằng:
+
+`Market Scale = percentile-rank(log(1 + Annual Wage × Employment))`
+
+Biến đổi log giúp hạn chế việc các nghề có quy mô nhân sự rất lớn áp đảo toàn bộ
+bảng xếp hạng. Phân vị được tính trên danh sách nghề duy nhất để nghề có nhiều
+task không tự tạo thêm trọng số. Mức độ hiện diện của task được tính bằng:
+
+`Time Share Proxy = 0,10 + 0,90 × (Worker Time - 1) / 4`
+
+`Frequency Intensity = (Frequency - 1) / 6`
+
+`Importance Intensity = (Importance - 1) / 4`
+
+`Task Exposure = 0,50 × Time Share Proxy + 0,25 × Frequency Intensity + 0,25 × Importance Intensity`
+
+Frequency và Importance được chuẩn hóa theo neo đầy đủ của thang O*NET, thay vì
+Min-Max theo mẫu quan sát. Nhờ vậy, Frequency = 3 (hơn một lần mỗi tháng) không
+bị gán sai thành mức 0 chỉ vì đây là giá trị nhỏ nhất xuất hiện trong mẫu IT.
+
+Khả năng AI thực hiện task được đưa từ thang 1–5 về 0–1:
+
+`Automation Potential = (Expert Automation Capacity - 1) / 4`
+
+Tiềm năng kinh tế thô và ROI Index cuối cùng được tính như sau:
+
+`Economic Potential Raw = Market Scale × Task Exposure × Automation Potential`
+
+`ROI Index = MinMax(Economic Potential Raw)`
+
+Phép nhân được chọn để một thành phần rất cao không thể che lấp hoàn toàn một
+thành phần gần bằng 0. ROI Index cuối cùng nằm trong khoảng 0–1; điểm càng cao
+thể hiện mức ưu tiên kinh tế tương đối càng lớn trong phạm vi tập dữ liệu IT.
+
+### 3.4. Phân vùng chiến lược và độ tin cậy
+
+Ngưỡng vùng được xác định theo phân vị của 102 task đủ dữ liệu, thay vì dùng
+ngưỡng cố định tùy ý:
+
+| Vùng chiến lược | Quy tắc | Số task |
+|---|---:|---:|
+| Tự động hóa ngay | ROI Index từ phân vị 75% trở lên | 26 |
+| Cân nhắc | Từ phân vị 40% đến dưới phân vị 75% | 35 |
+| Giữ nguyên / Theo dõi | Dưới phân vị 40% | 41 |
+| Chưa đủ dữ liệu | Thiếu ít nhất một biến bắt buộc | 84 |
+
+Độ tin cậy được gắn `Cao` khi task đủ dữ liệu, có 3 chuyên gia và ít nhất 8 worker
+đánh giá; các task đủ dữ liệu còn lại được gắn `Trung bình`. Đây là chỉ báo mô tả
+sức mạnh bằng chứng, không phải xác suất thống kê rằng kết quả đúng.
+
+### 3.5. Kết quả nổi bật
+
+Các task đứng đầu ROI Index tập trung vào hỗ trợ người dùng, quản trị hệ thống,
+báo cáo vận hành và tài liệu kiểm thử - những hoạt động có quy mô lao động đáng
+kể, xuất hiện thường xuyên và được chuyên gia đánh giá có khả năng tự động hóa
+cao. Năm task đứng đầu gồm:
+
+| Hạng | Nghề | Task (rút gọn) | ROI Index | Độ tin cậy |
+|---:|---|---|---:|---|
+| 1 | Computer User Support Specialists | Trả lời yêu cầu phần mềm/phần cứng để xử lý sự cố | 1,000 | Trung bình |
+| 2 | Computer User Support Specialists | Giám sát hiệu năng hằng ngày của hệ thống | 0,949 | Trung bình |
+| 3 | Computer User Support Specialists | Duy trì hồ sơ giao dịch, sự cố và biện pháp khắc phục | 0,862 | Trung bình |
+| 4 | Computer and Information Systems Managers | Quản lý backup, bảo mật và hệ thống hỗ trợ người dùng | 0,837 | Trung bình |
+| 5 | Computer User Support Specialists | Nhập lệnh, quan sát vận hành và phát hiện lỗi | 0,832 | Trung bình |
+
+Kết quả trên phản ánh **tiềm năng ưu tiên**, chưa phải khuyến nghị thay thế hoàn
+toàn con người. Khi đưa lên dashboard, ROI Index cần được kết hợp với Friction
+Score: task ROI cao và Friction thấp phù hợp để pilot sớm; task ROI cao nhưng
+Friction cao cần triển khai theo mô hình human-in-the-loop và có kế hoạch quản
+trị thay đổi.
+
+### 3.6. Giới hạn và hướng đo ROI thực tế
+
+- Wage và Employment là dữ liệu cấp nghề, vì vậy các task cùng nghề dùng chung
+  quy mô thị trường lao động.
+- ROI Index nhạy với phạm vi tập dữ liệu và phương pháp chuẩn hóa; không nên so
+  sánh trực tiếp với chỉ số được tính trên một ngành khác.
+- `Worker_Time` chỉ là tỷ lệ tự báo cáo dạng thang đo; chưa có số giờ làm thực
+  tế, tỷ lệ AI được chấp nhận và chi phí triển khai.
+- Sau pilot, doanh nghiệp cần đo thời gian xử lý, tỷ lệ lỗi, sản lượng, chi phí
+  AI/hạ tầng và thời gian kiểm duyệt. Khi đó ROI tài chính mới được tính bằng
+  `(Annual Benefit - Annual Cost) / Annual Cost`.
+
+Mã tính toán được đóng gói trong `src/roi_index.py`, có kiểm tra schema, xử lý
+missing value, đánh giá độ tin cậy và xuất `data/processed/roi_index.csv` làm
+input cho Tab 1 Dashboard.
+
 ## 4. Phương pháp tính Friction Score
 
 ## 5. Biểu đồ & Insight
