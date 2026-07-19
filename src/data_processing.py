@@ -137,6 +137,16 @@ def load_raw_data() -> dict[str, pd.DataFrame]:
 # ---------------------------------------------------------------------------
 # 2. CLEANING HELPERS
 # ---------------------------------------------------------------------------
+def clean_dataframe(df: pd.DataFrame) -> pd.DataFrame:
+    """Loại các dòng trùng hoàn toàn trong một DataFrame bất kỳ.
+
+    Helper nhỏ này giữ API mà bộ test và notebook cũ đang sử dụng; các hàm
+    làm sạch theo từng nguồn dữ liệu bên dưới vẫn chịu trách nhiệm chuẩn hóa
+    schema chuyên biệt.
+    """
+    return df.drop_duplicates().reset_index(drop=True)
+
+
 def _parse_str_list(value) -> list:
     """Chuyển chuỗi dạng "['a', 'b']" thành list Python thật.
 
