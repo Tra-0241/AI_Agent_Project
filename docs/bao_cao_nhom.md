@@ -224,6 +224,91 @@ input cho Tab 1 Dashboard.
 
 ## 4. Phương pháp tính Friction Score
 
+### 4.1. Định nghĩa và phạm vi dữ liệu nghiên cứu
+
+**Friction Score** được xây dựng nhằm **định lượng mức độ xung đột hoặc lực cản tâm lý** khi áp dụng AI Agent vào các tác vụ công nghệ thông tin. Chỉ số này phản ánh khoảng cách giữa:
+
+- **Năng lực thực tế của AI** (dựa trên đánh giá chuyên gia),
+- **Nguyện vọng giữ lại tác vụ của người lao động** (dựa trên khảo sát thực tế).
+
+Nói cách khác, Friction Score đo lường mức độ mà AI có khả năng đảm nhiệm, nhưng nhân sự vận hành **không sẵn sàng chuyển giao**.
+
+Để đảm bảo tính chính xác và khách quan, chỉ số được tính trên **131/186 task IT** đáp ứng đủ dữ liệu đồng thời từ cả hai phía: đánh giá chuyên gia và khảo sát người lao động. 55 task còn lại bị loại bỏ khỏi phạm vi phân tích do thiếu dữ liệu ở một trong hai nguồn, thay vì áp dụng các phương pháp gán thế (imputation). Hướng tiếp cận này giúp giảm thiểu nguy cơ **sai lệch phân bổ tự nhiên** hoặc tạo ra **nhiễu sai số hệ thống** trong mô hình.
+
+### 4.2. Công thức và mô hình toán học
+
+**Friction Score** (chuẩn hóa về thang điểm 0–100) được cấu thành từ **tổng có trọng số của 4 chỉ báo thành phần**. Mỗi thành phần được **chuẩn hóa Min-Max về miền [0, 1]** dựa trên phân bố thực nghiệm của 131 task được chọn.
+
+Các thành phần bao gồm:
+
+- **Capacity–Desire Gap**: phản ánh trạng thái AI vượt trội hơn so với mong muốn chuyển giao của con người.
+  - Công thức: `max(0, Automation Capacity - Automation Desire)`
+  - Sau đó chuẩn hóa Min-Max.
+- **Job Security Concern**: đo lường áp lực tâm lý lo ngại mất việc.
+  - Công thức: `1 - min-max(Job Security Rating)`.
+- **Enjoyment Attachment**: biểu thị xu hướng giữ lại tác vụ mang lại niềm vui hoặc giá trị tự thân.
+  - Công thức: `min-max(Enjoyment Rating)`.
+- **Human Agency Resistance**: phản ánh nhu cầu duy trì quyền kiểm soát, sự thấu cảm và trách nhiệm đạo đức.
+  - Công thức: trung bình của ba tỷ lệ thành phần `Control Ratio`, `Empathy Ratio`, `Ethical Ratio`, sau đó chuẩn hóa Min-Max.
+
+Công thức tổng quát:
+
+`Friction Score = 100 × [0.25 × Gap + 0.25 × Job Security Concern + 0.25 × Enjoyment Attachment + 0.25 × Human Agency Resistance]`
+
+### 4.3. Cơ sở lựa chọn trọng số
+
+Trong giai đoạn thiết kế mô hình, nhóm đã cân nhắc dùng **PCA** để xác định trọng số khách quan dựa trên cấu trúc biến động. Tuy nhiên, kết quả thực nghiệm cho thấy PCA không phù hợp với bản chất lý thuyết của bài toán bởi:
+
+- **Tính độc lập của các chỉ báo**: hệ số tương quan giữa 4 thành phần rất thấp (`|r| = 0,10–0,22`), cho thấy chúng gần như trực giao, không có dư thừa để PCA khai thác.
+- **Không có trục chính chi phối**: PC1 chỉ giải thích `33,6%` phương sai, gần bằng PC2 (`31,2%`), không đủ để đại diện cho toàn bộ cấu trúc dữ liệu.
+- **Mâu thuẫn logic**: PCA tải âm lên biến *Capacity–Desire Gap* — biến hạt nhân của lý thuyết lực cản — khiến PC1 chỉ gán `3,0%` trọng số cho biến này, trong khi chuyển phần lớn sang *Job Security* (`24,6%`), *Enjoyment* (`57,3%`) và *Human Agency* (`15,1%`).
+
+Vì các thành phần có tính độc lập cao, mô hình trọng số bằng phương sai như PCA sẽ **sai lệch bản chất lý thuyết**. Do đó, nhóm chọn **trọng số bằng nhau**: mỗi thành phần đóng góp **25%**, đảm bảo vai trò ngang hàng của cả 4 khía cạnh lực cản.
+
+### 4.4. Kiểm định độ nhạy
+
+Để đánh giá độ bền vững của cấu trúc trọng số đồng đều, nhóm thực hiện kiểm định độ nhạy giữa ba kịch bản:
+
+| Kịch bản | Hệ số Spearman (ρ) | Tỷ lệ trùng lặp Top-15 |
+|---|---:|---:|
+| Trọng số giả định ban đầu (40/20/20/20) vs. trọng số đồng đều (25/25/25/25) | 0.905 | 12 / 15 |
+| Trọng số giả định ban đầu vs. trọng số thực nghiệm PCA | 0.428 | 4 / 15 |
+| Trọng số đồng đều vs. trọng số thực nghiệm PCA | 0.687 | 7 / 15 |
+
+Kết quả cho thấy mô hình **ổn định cao** khi chuyển từ bộ trọng số ban đầu sang bộ trọng số đồng đều (`ρ = 0.905`), với **Top 1 giữ nguyên** là task `14647` (Software Quality Assurance Analysts and Testers). Ngược lại, so với mô hình PCA, tương quan chỉ đạt `0.43–0.69`, khẳng định PCA không phản ánh đúng cấu trúc và bản chất của bài toán.
+
+### 4.5. Thiết lập ngưỡng cảnh báo vận hành
+
+Nhóm thiết lập ngưỡng vận hành dựa trên **phân vị dữ liệu** để phục vụ công tác quản trị và ra quyết định:
+
+- **Ngưỡng Đỏ (Cảnh báo Cao)**: 25% task có Friction Score cao nhất, tương ứng với giá trị thực nghiệm từ **47.64 điểm trở lên**.
+- **Ngưỡng Xanh (An toàn / Lực cản thấp)**: các task còn lại dưới ngưỡng này.
+
+Đây là ngưỡng **vận hành chủ động**, nhằm tối ưu hóa tài nguyên sàng lọc và giám sát. Đây không phải là một ranh giới phân tách thống kê tự nhiên mà là ngưỡng thực nghiệm phù hợp với mục tiêu quản lý rủi ro.
+
+### 4.6. Kết quả thực nghiệm
+
+Với công thức trên, phân bố Friction Score của 131 task cho kết quả:
+
+- **Trung bình**: 41,92
+- **Độ lệch chuẩn**: 9,30
+- **Thấp nhất**: 22,21
+- **Cao nhất**: 66,54
+
+Trong đó:
+
+- **33/131 task** (25%) được gắn cờ **Đỏ**.
+- Các task Đỏ tập trung nhiều ở nhóm **Software Quality Assurance Analysts and Testers**, **Computer Systems Engineers/Architects**, **Computer User Support Specialists**.
+
+Phân bố **“Lý do chính”** của 131 task:
+
+- **Job Security**: 62 task (47%)
+- **Enjoyment**: 57 task (44%)
+- **Capacity–Desire Gap**: 10 task (8%)
+- **Human Agency**: 2 task (1%)
+
+Kết quả này cho thấy lực cản chủ yếu đến từ **lo ngại mất việc** và **mức độ gắn bó với công việc**, nhiều hơn so với khoảng cách “AI làm được vs muốn nhường” hoặc nhu cầu giữ quyền con người.
+
 ## 5. Biểu đồ & Insight
 
 ## 6. Đề xuất ứng dụng AI Agent
