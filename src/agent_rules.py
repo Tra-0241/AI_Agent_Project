@@ -2,48 +2,67 @@
 agent_rules.py
 Phụ trách: Thành viên 4 - Product/Dashboard Developer
 
-Bộ luật gợi ý vai trò AI Agent phù hợp dựa trên Reasons for Automation Desire,
+Bộ luật gợi ý vai trò AI Agent phù hợp dựa trên tỷ lệ (Share_AutoDesire_*),
 và gợi ý kỹ năng con người cần nâng cấp dựa trên Human Agency Scale Rating cao.
+
+LƯU Ý: File này chạy trên it_master.csv (bảng đã gộp/aggregate theo Task của TV1)
 """
 
 import pandas as pd
 
-# Bộ luật: (điều kiện cờ Automation Desire) -> gợi ý vai trò AI Agent
+# Bộ luật: (điều kiện các cờ Share_AutoDesire_* đang chiếm tỷ lệ cao) -> gợi ý vai trò AI Agent
 AGENT_SUGGESTION_RULES = [
     (
-        {"Reasons for Automation Desire - Repetitive", "Reasons for Automation Desire - Human Error"},
+        {"Share_AutoDesire_Repetitive", "Share_AutoDesire_Human Error"},
         "Trợ lý kiểm tra lỗi / QA Agent tự động",
     ),
     (
-        {"Reasons for Automation Desire - Stress", "Reasons for Automation Desire - Difficulty"},
+        {"Share_AutoDesire_Stress", "Share_AutoDesire_Difficulty"},
         "Trợ lý xử lý tác vụ khó / giảm tải công việc",
     ),
     (
-        {"Reasons for Automation Desire - Scale"},
+        {"Share_AutoDesire_Scale"},
         "Agent xử lý hàng loạt / batch processing",
     ),
     (
-        {"Reasons for Automation Desire - Free Time"},
+        {"Share_AutoDesire_Free Time"},
         "Trợ lý tự động hóa tác vụ định kỳ (scheduling/reporting Agent)",
     ),
 ]
 
 # Kỹ năng con người gợi ý nâng cấp khi Human Agency Scale Rating cao
 HUMAN_SKILL_SUGGESTIONS = {
-    "Reasons for Human Agency - Empathy": "Giao tiếp & thấu cảm với khách hàng/đồng nghiệp",
-    "Reasons for Human Agency - Dynamic": "Xử lý tình huống phức tạp, thay đổi linh hoạt",
-    "Reasons for Human Agency - Domain Knowledge": "Đào sâu chuyên môn ngành, ra quyết định dựa trên kinh nghiệm",
-    "Reasons for Human Agency - Control": "Kỹ năng giám sát, kiểm soát chất lượng đầu ra AI",
-    "Reasons for Human Agency - Quality Oversight": "Review & đảm bảo chất lượng (QA cấp cao)",
-    "Reasons for Human Agency - Ethical": "Ra quyết định đạo đức / tuân thủ",
+    "Share_HumanAgency_Empathy": "Giao tiếp & thấu cảm với khách hàng/đồng nghiệp",
+    "Share_HumanAgency_Dynamic": "Xử lý tình huống phức tạp, thay đổi linh hoạt",
+    "Share_HumanAgency_Domain Knowledge": "Đào sâu chuyên môn ngành, ra quyết định dựa trên kinh nghiệm",
+    "Share_HumanAgency_Control": "Kỹ năng giám sát, kiểm soát chất lượng đầu ra AI",
+    "Share_HumanAgency_Quality Oversight": "Review & đảm bảo chất lượng (QA cấp cao)",
+    "Share_HumanAgency_Ethical": "Ra quyết định đạo đức / tuân thủ",
 }
 
-HUMAN_AGENCY_HIGH_THRESHOLD = 4  # trên thang 1-5, ví dụ
+# Ngưỡng để coi 1 lý do (Share_*) là "chiếm ưu thế" trong nhóm worker của task đó.
+# Share_* là tỷ lệ 0-1; theo phân phối thực tế trong it_master.csv (mean ~0.31,
+# 75th percentile ~0.5), 0.4 tương ứng mức "đáng kể, hơn khoảng 1/3 worker nêu lý do này".
+SHARE_ACTIVE_THRESHOLD = 0.4
+
+# Ngưỡng Human Agency Scale Rating để coi là "cao". Thang gốc là 1-5, nhưng vì
+# it_master.csv là điểm trung bình đã gộp theo task, khoảng giá trị quan sát được
+# hẹp hơn (~1.6 - 3.8, mean ~2.85). 3.2 tương ứng khoảng top một phần tư task có
+# Human Agency cao nhất — nên cân nhắc lại ngưỡng này nếu phân phối dữ liệu thay đổi.
+HUMAN_AGENCY_HIGH_THRESHOLD = 3.2
+
+# Cột rating dùng để đánh giá "Human Agency cao" — có thể đổi thành cột Expert_
+# hoặc lấy trung bình 2 cột nếu muốn kết hợp góc nhìn chuyên gia + worker.
+HUMAN_AGENCY_RATING_COL = "Worker_Human Agency Scale Rating"
 
 
 def suggest_agent_role(row: pd.Series) -> str:
-    """Gợi ý vai trò AI Agent dựa trên các cờ Reasons for Automation Desire đang bật."""
-    active_flags = {col for col in row.index if col.startswith("Reasons for Automation Desire") and row.get(col)}
+    """Gợi ý vai trò AI Agent dựa trên các cột Share_AutoDesire_* vượt ngưỡng."""
+    active_flags = {
+        col
+        for col in row.index
+        if col.startswith("Share_AutoDesire_") and pd.notna(row[col]) and row[col] >= SHARE_ACTIVE_THRESHOLD
+    }
 
     best_match, best_overlap = "Chưa xác định - cần xem xét thủ công", 0
     for rule_flags, suggestion in AGENT_SUGGESTION_RULES:
@@ -57,13 +76,14 @@ def suggest_agent_role(row: pd.Series) -> str:
 
 def suggest_human_skills(row: pd.Series) -> list[str]:
     """Gợi ý kỹ năng con người cần nâng cấp khi Human Agency Scale Rating cao."""
-    if (row.get("Human Agency Scale Rating", 0) or 0) < HUMAN_AGENCY_HIGH_THRESHOLD:
+    rating = row.get(HUMAN_AGENCY_RATING_COL)
+    if pd.isna(rating) or rating < HUMAN_AGENCY_HIGH_THRESHOLD:
         return []
 
     return [
         suggestion
         for flag_col, suggestion in HUMAN_SKILL_SUGGESTIONS.items()
-        if row.get(flag_col, False)
+        if pd.notna(row.get(flag_col)) and row.get(flag_col) >= SHARE_ACTIVE_THRESHOLD
     ]
 
 

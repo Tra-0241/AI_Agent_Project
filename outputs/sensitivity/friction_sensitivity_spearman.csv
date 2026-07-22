@@ -1,0 +1,4 @@
+﻿So_Sanh,Spearman_Rho,P_Value,Overlap_Top15
+ban_dau vs bang_nhau,0.9054,0.0,12/15
+ban_dau vs pca,0.4277,0.0,4/15
+bang_nhau vs pca,0.6873,0.0,7/15

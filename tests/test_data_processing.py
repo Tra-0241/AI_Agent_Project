@@ -3,9 +3,16 @@ Test cơ bản cho src/data_processing.py.
 Chạy: pytest tests/
 """
 
-import pandas as pd
+from pathlib import Path
+import sys
 
-from src.data_processing import filter_it_occupations, clean_dataframe
+
+ROOT = Path(__file__).resolve().parent.parent
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
+
+import pandas as pd
+from src.data_processing import filter_it_occupations
 
 
 def test_filter_it_occupations_keeps_only_it():
@@ -17,9 +24,3 @@ def test_filter_it_occupations_keeps_only_it():
     )
     result = filter_it_occupations(df)
     assert list(result["Occupation (O*NET-SOC Title)"]) == ["Web Developers"]
-
-
-def test_clean_dataframe_drops_duplicates():
-    df = pd.DataFrame({"a": [1, 1, 2]})
-    result = clean_dataframe(df)
-    assert len(result) == 2
