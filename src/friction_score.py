@@ -27,7 +27,6 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-logging.basicConfig(level=logging.INFO, format="[%(levelname)s] %(message)s")
 logger = logging.getLogger(__name__)
 
 PROCESSED_DIR = Path(__file__).resolve().parent.parent / "data" / "processed"

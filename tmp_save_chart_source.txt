@@ -1,0 +1,45 @@
+import os
+import sys
+import io
+import warnings
+import logging
+from pathlib import Path
+from contextlib import redirect_stdout, redirect_stderr
+
+ROOT = Path.cwd()
+if not (ROOT / 'src').exists():
+    ROOT = ROOT.parent
+sys.path.insert(0, str(ROOT))
+
+os.environ.setdefault('KALEIDO_NO_UPDATE_CHECK', '1')
+os.environ.setdefault('PLOTLY_LOG_LEVEL', 'ERROR')
+os.environ.setdefault('PYTHONWARNINGS', 'ignore')
+
+warnings.filterwarnings('ignore', category=DeprecationWarning)
+for logger_name in ['plotly', 'kaleido', 'selenium', 'urllib3', 'tornado', 'choreographer']:
+    logging.getLogger(logger_name).setLevel(logging.CRITICAL)
+
+import pandas as pd
+import plotly.express as px
+from src.friction_score import build_friction_outputs, build_friction_table
+
+pd.set_option('display.max_columns', 200)
+
+SCREENSHOT_DIR = ROOT / 'docs' / 'screenshots'
+SCREENSHOT_DIR.mkdir(parents=True, exist_ok=True)
+
+
+def save_chart(fig, filename, width=1200, height=700):
+    output_path = SCREENSHOT_DIR / filename
+    with redirect_stdout(io.StringIO()), redirect_stderr(io.StringIO()):
+        logging.disable(logging.CRITICAL)
+        try:
+            fig.write_image(str(output_path), width=width, height=height, scale=2)
+
+
+
+
+    return output_path    print(f'Đã lưu ảnh: {output_path}')            logging.disable(logging.NOTSET)        finally:        finally:
+            logging.disable(logging.NOTSET)
+    print(f'Đã lưu ảnh: {output_path}')
+    return output_path
