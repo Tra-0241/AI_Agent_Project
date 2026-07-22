@@ -516,6 +516,14 @@ def build_quadrant_scatter(plot_df: pd.DataFrame) -> go.Figure:
     tư theo trung vị của chính tập dữ liệu đang hiển thị — mỗi góc là một
     khuyến nghị triển khai, đúng với khung "vùng chiến lược" của đề tài.
     """
+    # Tạo cột gộp tên Legend 
+    plot_df = plot_df.copy()
+    if "Canh_Bao" in plot_df.columns:
+        risk_map = {"Đỏ": "Rủi ro cao", "Xanh": "An toàn", "Chưa đủ dữ liệu": "Thiếu dữ liệu"}
+        plot_df["Mức rủi ro"] = plot_df["Canh_Bao"].map(risk_map).fillna(plot_df["Canh_Bao"])
+    else:
+        plot_df["Mức rủi ro"] = "An toàn"
+
     roi_median = plot_df["ROI Index"].median()
     friction_valid = plot_df["Friction Score"].dropna()
     friction_median = float(friction_valid.median()) if not friction_valid.empty else 50.0
@@ -525,7 +533,7 @@ def build_quadrant_scatter(plot_df: pd.DataFrame) -> go.Figure:
         x="ROI Index",
         y="Friction Score",
         color="Strategy Zone",
-        symbol="Canh_Bao",
+        symbol="Mức rủi ro",  # Sử dụng tên đã map 
         size="Occupation Employment",
         size_max=28,
         color_discrete_map=STRATEGY_COLOR_MAP,
@@ -538,45 +546,60 @@ def build_quadrant_scatter(plot_df: pd.DataFrame) -> go.Figure:
         },
     )
 
-    y_top = max(100.0, float(plot_df["Friction Score"].max(skipna=True) or 100) + 5)
+    # Cố định đỉnh Y cao hơn 
+    y_top = 105.0
     x_left, x_right = -0.03, 1.03
 
     quadrants = [
-        (roi_median, x_right, friction_median, 0, COLOR_ROI_HIGH,
-         "Ưu tiên triển khai AI Agent"),
-        (roi_median, x_right, y_top, friction_median, COLOR_ROI_MED,
-         "Triển khai thận trọng — quản lý phản ứng nhân sự"),
-        (x_left, roi_median, friction_median, 0, COLOR_ROI_LOW,
-         "Chưa cấp thiết"),
-        (x_left, roi_median, y_top, friction_median, COLOR_RISK_RED,
-         "Không nên tự động hóa sớm"),
+        # (x0, x1, y0, y1, color, label, text_y_pos)
+        (roi_median, x_right, 0, friction_median, COLOR_ROI_HIGH, 
+         "Ưu tiên triển khai AI Agent", friction_median * 0.15),
+        
+        (roi_median, x_right, friction_median, y_top, COLOR_ROI_MED, 
+         "Triển khai thận trọng\n(Quản trị phản ứng)", y_top - 4),
+        
+        (x_left, roi_median, 0, friction_median, COLOR_ROI_LOW, 
+         "Chưa cấp thiết", friction_median * 0.15),
+        
+        (x_left, roi_median, friction_median, y_top, COLOR_RISK_RED, 
+         "Không nên tự động hóa", y_top - 4),
     ]
-    for x0, x1, y1, y0, color, label in quadrants:
+
+    for x0, x1, y0, y1, color, label, text_y in quadrants:
+        # Vẽ hình chữ nhật làm nền góc phần tư
         fig.add_shape(
             type="rect", x0=x0, x1=x1, y0=y0, y1=y1,
             fillcolor=color, opacity=0.06, line_width=0, layer="below",
         )
+        # Thêm nhãn tên góc phần tư với vị trí Y 
         fig.add_annotation(
-            x=(x0 + x1) / 2, y=y1 - (y1 - y0) * 0.06 if y1 > y0 else y1 + 4,
-            text=label, showarrow=False,
-            font=dict(size=10, color=COLOR_TEXT_MUTED), opacity=0.9,
+            x=(x0 + x1) / 2, 
+            y=text_y,
+            text=label.replace("\n", "<br>"),  
+            showarrow=False,
+            font=dict(size=10, color=COLOR_TEXT_MUTED, family="Inter, sans-serif"),
+            opacity=0.85,
+            align="center",
         )
 
+    # Đường phân cách Trung vị (Median)
     fig.add_vline(x=roi_median, line_dash="dot", line_color=COLOR_ROI_LOW, line_width=1)
     fig.add_hline(y=friction_median, line_dash="dot", line_color=COLOR_ROI_LOW, line_width=1)
 
+    # Tăng margin top (t=50) và cố định dải hiển thị Y (range)
     fig.update_layout(
-        height=420,
+        height=450,
         plot_bgcolor=COLOR_SURFACE,
         paper_bgcolor=COLOR_SURFACE,
         font=dict(family="Inter, sans-serif", color=COLOR_TEXT),
-        legend_title_text="Vùng chiến lược",
-        margin=dict(l=10, r=10, t=30, b=10),
+        legend_title_text="Vùng chiến lược & Rủi ro",
+        margin=dict(l=15, r=15, t=50, b=15),  # Tăng t lên 50 để rộng khoảng trên
         xaxis_title="ROI Index",
         yaxis_title="Friction Score",
     )
     fig.update_xaxes(range=[x_left, x_right], gridcolor=COLOR_BORDER)
-    fig.update_yaxes(gridcolor=COLOR_BORDER)
+    fig.update_yaxes(range=[-3, y_top + 2], gridcolor=COLOR_BORDER) # Khóa range Y chuẩn
+    
     return fig
 
 
@@ -639,8 +662,8 @@ st.markdown(
             <h1>AI Agent Deployment Blueprint</h1>
         </div>
         <div class="app-subtitle">
-            Mô hình tối ưu hóa ROI kinh tế và quản trị lực cản nhân sự khi triển khai
-            AI Agent trong khối ngành IT trong dữ liệu WORKBank.
+            Giải pháp tối ưu ROI và quản trị lực cản nhân sự 
+            trong quá trình áp dụng AI Agent cho ngành IT.
         </div>
         <div class="app-tags">
             <span class="app-tag"> ROI Index</span>
@@ -672,7 +695,7 @@ st.sidebar.markdown(
 occupations = sorted(data["Occupation (O*NET-SOC Title)"].dropna().unique())
 selected_occupations = st.sidebar.multiselect(
     "Nghề (Occupation)", options=occupations, default=[],
-    placeholder="Tất cả nghề IT",
+    placeholder="Tất cả ngành nghề",
 )
 
 st.sidebar.markdown('<hr class="sidebar-divider">', unsafe_allow_html=True)
@@ -686,7 +709,7 @@ selected_wage = st.sidebar.slider(
 
 st.sidebar.markdown('<hr class="sidebar-divider">', unsafe_allow_html=True)
 
-risk_options = ["Đỏ", "Xanh", "Chưa đủ dữ liệu"]
+risk_options = ["Rủi ro cao (Đỏ)", "Rủi ro thấp (Xanh)", "Chưa đủ dữ liệu"]
 selected_risk = st.sidebar.multiselect(
     "Mức rủi ro (Cảnh báo Friction)", options=risk_options, default=risk_options,
     placeholder="Chọn mức rủi ro",
@@ -717,48 +740,106 @@ with tab1:
     )
     pct_red = (filtered["Canh_Bao"] == "Đỏ").mean() * 100 if total_tasks else 0
 
+    # CẬP NHẬT WORDING VÀ LABEL CHO KPI METRICS
     render_kpi_row([
-        ("Tổng số task IT", f"{total_tasks:,}", COLOR_ACCENT, "sau khi áp bộ lọc", ""),
+        ("Tổng số task IT", f"{total_tasks:,}", COLOR_ACCENT, "Theo bộ lọc hiện tại", ""),
         ("ROI Index trung bình", f"{avg_roi:.2f}" if pd.notna(avg_roi) else "—",
-         COLOR_ROI_HIGH, "thang 0.00 – 1.00", ""),
+         COLOR_ROI_HIGH, "Thang điểm 0.0 - 1.0", ""),
         ("Task ưu tiên tự động hóa", f"{pct_automate_now:.0f}%", COLOR_ROI_MED,
-         "trong vùng \"Tự động hóa ngay\"", ""),
-        ("Task cảnh báo Friction đỏ", f"{pct_red:.0f}%", COLOR_RISK_RED,
-         "cần quản trị phản ứng nhân sự", ""),
+         "Thuộc nhóm \"Tự động hóa ngay\"", ""),
+        ("Task rủi ro Friction cao", f"{pct_red:.0f}%", COLOR_RISK_RED,
+         "Cần quản trị phản ứng nhân sự", ""),
     ])
 
     plot_df = filtered.dropna(subset=["ROI Index"]).copy()
     missing_friction = int(plot_df["Friction Score"].isna().sum())
 
     render_section("Bản đồ chiến lược: ROI Index x Friction Score", icon="")
-    col_main, col_side = st.columns([2, 1])
-    with col_main:
-        with st.container(border=True):
+
+    #  CHUYỂN DẠNG TOGGLE/CAROUSEL VIEW 
+    if "tab1_chart_view" not in st.session_state:
+        st.session_state.tab1_chart_view = "Bản đồ 4 góc phần tư"
+
+    with st.container(border=True):
+        col_title, col_toggle = st.columns([2.2, 1.8])
+        
+        # Mapping tiêu đề nhảy theo góc nhìn
+        title_map = {
+            "Bản đồ 4 góc phần tư": " Ma trận Chiến lược (ROI x Friction)",
+            "Phân bố Vùng chiến lược": " Thống kê Phân bố Vùng chiến lược"
+        }
+        current_title = title_map.get(
+            st.session_state.tab1_chart_view, 
+            " Bản đồ chiến lược: ROI Index x Friction Score"
+        )
+        
+        with col_title:
+            st.markdown(f"### {current_title}")
+            
+        with col_toggle:
+            selected_view_tab1 = st.radio(
+                "Chọn góc nhìn Tab 1",
+                options=["Bản đồ 4 góc phần tư", "Phân bố vùng chiến lược"],
+                key="tab1_chart_view_radio",
+                horizontal=True,
+                label_visibility="collapsed",
+            )
+            st.session_state.tab1_chart_view = selected_view_tab1
+
+        st.divider()
+
+        # VIEW 1: SCATTER PLOT 4 GÓC PHẦN TƯ 
+        if st.session_state.tab1_chart_view == "Bản đồ 4 góc phần tư":
             if plot_df.empty:
                 st.info("Không có task nào khớp bộ lọc hiện tại.")
             else:
-                st.plotly_chart(build_quadrant_scatter(plot_df), use_container_width=True)
+                st.plotly_chart(
+                    build_quadrant_scatter(plot_df), 
+                    use_container_width=True, 
+                    key="tab1_scatter_quadrant"
+                )
                 if missing_friction:
                     st.caption(
                         f"ℹ️ {missing_friction} task có ROI Index nhưng chưa có Friction Score "
                         "(thiếu Expert hoặc Worker rating) — vẫn hiển thị, không loại bỏ."
                     )
-    with col_side:
-        with st.container(border=True):
+
+        # VIEW 2: BIỂU ĐỒ CỘT THỐNG KÊ PHÂN BỐ 
+        elif st.session_state.tab1_chart_view == "Phân bố Vùng chiến lược":
             if plot_df.empty:
                 st.caption("Không có dữ liệu để hiển thị phân bố vùng chiến lược.")
             else:
-                st.plotly_chart(build_strategy_zone_bar(plot_df), use_container_width=True)
+                st.plotly_chart(
+                    build_strategy_zone_bar(plot_df), 
+                    use_container_width=True, 
+                    key="tab1_bar_strategy"
+                )
 
+    # BẢNG CHI TIẾT THEO TASK 
     with st.expander("Xem bảng chi tiết theo task"):
         display_cols = [
             "Occupation (O*NET-SOC Title)", "Task", "ROI Index", "Strategy Zone",
             "Data Confidence", "Friction Score", "Canh_Bao", "Lý do chính",
         ]
+        
+        df_to_show = filtered[[c for c in display_cols if c in filtered.columns]].sort_values(
+            "ROI Index", ascending=False, na_position="last"
+        )
+
         st.dataframe(
-            filtered[[c for c in display_cols if c in filtered.columns]]
-            .sort_values("ROI Index", ascending=False, na_position="last"),
-            use_container_width=True, hide_index=True,
+            df_to_show,
+            use_container_width=True,
+            hide_index=True,
+            column_config={
+                "Occupation (O*NET-SOC Title)": st.column_config.TextColumn("Vị trí công việc", width="medium"),
+                "Task": st.column_config.TextColumn("Mô tả Task", width="large"),
+                "ROI Index": st.column_config.NumberColumn("ROI Index", format="%.2f", width="small"),
+                "Strategy Zone": st.column_config.TextColumn("Vùng chiến lược", width="medium"),
+                "Data Confidence": st.column_config.NumberColumn("Độ tin cậy DL", format="%.2f", width="small"),
+                "Friction Score": st.column_config.NumberColumn("Friction Score", format="%.1f", width="small"),
+                "Canh_Bao": st.column_config.TextColumn("Mức rủi ro", width="small"),
+                "Lý do chính": st.column_config.TextColumn("Yếu tố rủi ro (Friction)", width="large"),
+            }
         )
 
 # ---------------------------------------------------------------------------
@@ -775,46 +856,91 @@ with tab2:
     )
     n_skill_tasks = int((filtered["Suggested Human Skills"] != "-").sum())
 
+    # CẬP NHẬT WORDING KPI METRICS
     render_kpi_row([
-        ("Vai trò AI Agent gợi ý", f"{n_roles}", COLOR_ACCENT, "vai trò khác nhau", ""),
-        ("Task cần xem xét thủ công", f"{pct_manual:.0f}%", COLOR_ROI_LOW,
-         "chưa khớp luật gợi ý nào", ""),
-        ("Task cần nâng kỹ năng người", f"{n_skill_tasks:,}", COLOR_ROI_MED,
-         "Human Agency Rating cao", ""),
+        ("Vai trò AI Agent gợi ý", f"{n_roles}", COLOR_ACCENT, "Vai trò khác nhau", ""),
+        ("Tỷ lệ task cần xem xét thủ công", f"{pct_manual:.0f}%", COLOR_ROI_LOW,
+         "Chưa khớp quy tắc gợi ý", ""),
+        ("Task cần nâng cao kỹ năng", f"{n_skill_tasks:,}", COLOR_ROI_MED,
+         "Chỉ số Human Agency cao", ""),
     ])
 
-    render_section("Vai trò AI Agent được gợi ý nhiều nhất", icon="")
-    col_role, col_reason = st.columns([1, 1])
-    with col_role:
-        with st.container(border=True):
+    render_section("Phân tích chuyên sâu về Nhân sự", icon="")
+
+    # 1. Khởi tạo state cho góc nhìn (mặc định chọn Vai trò AI)
+    if "tab2_chart_view" not in st.session_state:
+        st.session_state.tab2_chart_view = "Vai trò AI đề xuất"
+
+    with st.container(border=True):
+        col_title, col_toggle = st.columns([2.2, 1.8])
+        
+        # Mapping tiêu đề theo nút bấm (hoặc bạn có thể dùng 1 tên cố định)
+        title_map = {
+            "Vai trò AI đề xuất": "Phân bổ Vai trò AI Agent",
+            "Yếu tố rủi ro (Friction)": "Yếu tố gây rủi ro Friction"
+        }
+        current_title = title_map.get(
+            st.session_state.tab2_chart_view, 
+            "Phân tích Vai trò AI Agent & Rủi ro Friction"
+        )
+        
+        with col_title:
+            st.markdown(f"### {current_title}")
+            
+        with col_toggle:
+            selected_view = st.radio(
+                "Chọn góc nhìn",
+                options=["Vai trò AI đề xuất", "Yếu tố rủi ro (Friction)"],
+                key="tab2_chart_view_radio",
+                horizontal=True,
+                label_visibility="collapsed",
+            )
+            st.session_state.tab2_chart_view = selected_view
+
+        st.divider()
+
+        # VIEW 1: BIỂU ĐỒ VAI TRÒ AI AGENT
+        if st.session_state.tab2_chart_view == "Vai trò AI đề xuất":
             st.plotly_chart(build_agent_role_bar(filtered), use_container_width=True)
-    with col_reason:
-        with st.container(border=True):
-            st.markdown("**Lý do chính khiến Friction cao (task cảnh báo đỏ)**")
-            high_friction = filtered[filtered["Canh_Bao"] == "Đỏ"]
+
+        # VIEW 2: BẢNG LÝ DO FRICTION CAO
+        elif st.session_state.tab2_chart_view == "Yếu tố rủi ro (Friction)":
+            high_friction = filtered[filtered["Canh_Bao"] == "Đỏ"].copy()
             if high_friction.empty:
-                st.info("Không có task cảnh báo đỏ trong bộ lọc hiện tại.")
+                st.info("Không có task rủi ro cao trong bộ lọc hiện tại.")
             else:
+                reason_map = {
+                    "Lo ngại mất việc (Job Security)": "Lo ngại an toàn việc làm (Job Security)",
+                    "Gắn bó/yêu thích task (Enjoyment)": "Mức độ gắn kết công việc (Enjoyment)",
+                    "Chênh lệch AI làm được vs người lao động muốn": "Khoảng cách giữa năng lực AI & kỳ vọng",
+                    "Muốn giữ vai trò con người (Control/Empathy/Ethical)": "Nhu cầu duy trì kiểm soát của con người",
+                }
+                if "Lý do chính" in high_friction.columns:
+                    high_friction["Lý do chính"] = high_friction["Lý do chính"].replace(reason_map)
+
                 reason_counts = (
                     high_friction["Lý do chính"].value_counts()
                     .rename_axis("Lý do chính").reset_index(name="Số task")
                 )
-                st.dataframe(reason_counts, use_container_width=True, hide_index=True)
-
-    with st.expander("Xem bảng chi tiết gợi ý theo task"):
-        tab2_cols = [
-            "Occupation (O*NET-SOC Title)", "Task", "Suggested AI Agent Role",
-            "Suggested Human Skills", "Friction Score", "Canh_Bao", "Lý do chính",
-        ]
-        st.dataframe(
-            filtered[[c for c in tab2_cols if c in filtered.columns]],
-            use_container_width=True, hide_index=True,
-        )
-
+                
+                st.dataframe(
+                    reason_counts,
+                    use_container_width=True,
+                    hide_index=True,
+                    column_config={
+                        "Lý do chính": st.column_config.TextColumn(
+                            "Yếu tố tạo ra rủi ro / kháng cự nhân sự", width="large"
+                        ),
+                        "Số task": st.column_config.NumberColumn(
+                            "Số lượng task bị ảnh hưởng", format="%d task", width="medium"
+                        ),
+                    }
+                )
+    # Design cho phần Action Plan theo task
     render_section("Action Plan theo task", icon="")
     st.caption(
-        "Chọn một task để Gemini tạo kế hoạch dựa trên ROI Index, Friction Score "
-        "và vai trò AI Agent đã được tính trong dashboard."
+        "Chọn một task để hệ thống (AI Agent) tự động lập kế hoạch triển khai chi tiết "
+        "dựa trên chỉ số ROI, Friction Score và vai trò AI đề xuất."
     )
 
     if "action_plan_task_key" not in st.session_state:
@@ -854,7 +980,7 @@ with tab2:
                     st.session_state.action_plan_task_key = task_key
                     st.session_state.action_plan_content = None
                     st.session_state.action_plan_error = None
-                    with st.spinner("Gemini đang tạo Action Plan..."):
+                    with st.spinner("AI Agent đang xây dựng Action Plan..."):
                         try:
                             st.session_state.action_plan_content = generate_action_plan(row)
                         except Exception as exc:
@@ -865,8 +991,8 @@ with tab2:
         selected_key = st.session_state.action_plan_task_key
         if selected_key is None:
             with st.container(height=560, border=True):
-                st.markdown("#### Action Plan")
-                st.info("Chọn **Tạo Action Plan** ở một task để xem kế hoạch chi tiết.")
+                st.markdown("#### Action Plan Chi Tiết")
+                st.info("Vui lòng chọn **Tạo Action Plan** ở danh sách bên trái để xem kế hoạch chi tiết.")
         else:
             selected_rows = filtered[
                 filtered.apply(
@@ -878,7 +1004,7 @@ with tab2:
             with st.container(border=True):
                 header_col, clear_col = st.columns([4, 1])
                 with header_col:
-                    st.markdown("#### Action Plan")
+                    st.markdown("#### Action Plan Chi Tiết")
                 with clear_col:
                     if st.button("Bỏ chọn", use_container_width=True):
                         st.session_state.action_plan_task_key = None
@@ -905,7 +1031,7 @@ with tab2:
                     elif st.session_state.action_plan_content:
                         st.markdown(st.session_state.action_plan_content)
                     else:
-                        st.info("Đang chờ nội dung Action Plan.")
+                        st.info("Đang chờ nội dung Action Plan...")
 
 st.markdown(
     """
