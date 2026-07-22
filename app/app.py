@@ -1,8 +1,12 @@
 """
+app.py
+Phụ trách: Thành viên 4 - Product/Dashboard Developer
+
 Streamlit Dashboard 2 tab cho đề tài "AI Agent Deployment Blueprint":
 - Tab 1 (Doanh nghiệp): bản đồ chiến lược ROI Index x Friction Score theo 4
   góc phần tư, KPI tổng quan, filter theo nghề / mức lương / mức rủi ro.
 - Tab 2 (Nhân sự): gợi ý vai trò AI Agent & kỹ năng con người cần nâng cấp.
+
 """
 
 from __future__ import annotations
@@ -690,7 +694,7 @@ with tab2:
             st.plotly_chart(build_agent_role_bar(filtered), use_container_width=True)
     with col_reason:
         with st.container(border=True):
-            st.markdown("** Lý do chính khiến Friction cao (task cảnh báo đỏ)**")
+            st.markdown("**Lý do chính khiến Friction cao (task cảnh báo đỏ)**")
             high_friction = filtered[filtered["Canh_Bao"] == "Đỏ"]
             if high_friction.empty:
                 st.info("Không có task cảnh báo đỏ trong bộ lọc hiện tại.")
