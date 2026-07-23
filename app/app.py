@@ -358,7 +358,7 @@ def read_processed_csv(path: Path) -> pd.DataFrame:
     """Read a processed CSV and normalize legacy mojibake in headers/values."""
     frame = pd.read_csv(path, encoding="utf-8-sig")
     frame.columns = [repair_mojibake(column) for column in frame.columns]
-    text_columns = frame.select_dtypes(include=["object", "str"]).columns
+    text_columns = frame.select_dtypes(include=["object", "string"]).columns
     for column in text_columns:
         frame[column] = frame[column].map(repair_mojibake)
     return frame
@@ -805,7 +805,7 @@ with tab1:
                     )
 
         # VIEW 2: BIỂU ĐỒ CỘT THỐNG KÊ PHÂN BỐ 
-        elif st.session_state.tab1_chart_view == "Phân bố Vùng chiến lược":
+        elif st.session_state.tab1_chart_view == "Phân bố vùng chiến lược":
             if plot_df.empty:
                 st.caption("Không có dữ liệu để hiển thị phân bố vùng chiến lược.")
             else:

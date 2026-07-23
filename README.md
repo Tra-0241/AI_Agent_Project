@@ -11,29 +11,50 @@ Mô hình tối ưu hóa ROI kinh tế và quản trị lực cản nhân sự k
 
 ## 2. Cấu trúc thư mục
 
-```
+```text
 ai-agent-it-roi-dashboard/
-├── data/
-│   ├── raw/                 # 4 file CSV gốc từ WORKBank (không commit dữ liệu lớn, xem .gitignore)
-│   └── processed/           # it_master.csv và các bảng kết quả trung gian
-├── src/                     # Logic xử lý dữ liệu, tách theo phân công từng thành viên
-│   ├── data_processing.py   # TV1 - merge, lọc IT, làm sạch dữ liệu
-│   ├── roi_index.py         # TV2 - tính ROI Index
-│   ├── friction_score.py    # TV3 - tính Friction Score
-│   └── agent_rules.py       # TV4 - bộ luật gợi ý AI Agent & kỹ năng cần học
 ├── app/
-│   └── app.py                # TV4 - Streamlit Dashboard (Tab 1 & Tab 2)
-├── notebooks/
-│   └── 01_exploration.ipynb  # EDA, thử nghiệm trước khi đưa vào src/
+│   └── app.py                      # Streamlit Dashboard
+│
+├── data/
+│   ├── raw/                        # Dữ liệu gốc từ WORKBank/O*NET
+│   └── processed/                  # Dữ liệu sau xử lý (it_master.csv, ...)
+│
 ├── docs/
-│   ├── bao_cao_nhom.md       # Báo cáo nhóm (nháp, xuất .docx/.pdf khi nộp)
-│   ├── slides/                # Slide trình bày (10-15 slide)
-│   └── screenshots/           # Ảnh chụp dashboard để nộp kèm báo cáo
+│   ├── screenshots/                # Ảnh dashboard, biểu đồ phục vụ báo cáo
+│   └── phan_cong_nhiem_vu.docx      # Phân công công việc nhóm
+│
+├── notebooks/
+│   ├── 01_exploration.ipynb         # Khám phá dữ liệu (EDA)
+│   ├── 02_ROI_Index.ipynb           # Xây dựng và kiểm tra ROI Index
+│   └── 03_Friction_Score.ipynb      # Xây dựng và kiểm tra Friction Score
+│
+├── outputs/
+│   ├── analysis/                   # Kết quả phân tích
+│   ├── dictionaries/               # Data dictionary, mô tả biến
+│   └── sensitivity/                # Kết quả phân tích độ nhạy
+│
+├── src/
+│   ├── __init__.py
+│   ├── agent_rules.py              # Luật gợi ý AI Agent & Action Plan
+│   ├── data_processing.py          # Tiền xử lý và hợp nhất dữ liệu
+│   ├── friction_score.py           # Tính Friction Score
+│   ├── roi_index.py                # Tính ROI Index
+│   └── sensitivity_analysis.py     # Phân tích độ nhạy Friction Score
+│
 ├── tests/
-│   └── test_data_processing.py
-├── requirements.txt
+│   ├── test_app_data_loading.py
+│   ├── test_data_processing.py
+│   ├── test_friction_score.py
+│   └── test_roi_index.py
+│
+├── .streamlit/
+│   └── config.toml                 # Cấu hình giao diện Streamlit
+│
 ├── .gitignore
-└── README.md
+├── README.md
+├── requirements.txt
+└── tmp_save_chart_source.txt
 ```
 
 ## 3. Phân công (tương ứng file `phan_cong_nhiem_vu.docx`)
