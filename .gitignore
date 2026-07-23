@@ -19,7 +19,6 @@ data/raw/*.csv
 !data/raw/.gitkeep
 
 # Outputs
-docs/screenshots/*.png
 docs/screenshots/*.jpg
 !docs/screenshots/.gitkeep
 
